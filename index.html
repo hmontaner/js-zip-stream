@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+        <meta charset="UTF-8">
+		<title>JS-ZIP-Stream</title>
+        <link rel="stylesheet" href="css/style.css">
+        <script src="js/zip.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/drag_and_drop.js"></script>
+        <script>
+            function init(){
+                new DragAndDrop("main").ondropped = function(file){
+                    // file is a zip if user dropped a folder or a group of files
+                    // Now you can stream it as a regular file
+                    var buffer = [], fileSystemChunkSize = 1024*1024;
+                    var sliceFile = function(offset){
+                        file.read(offset, offset + fileSystemChunkSize, function onLoaded(e){
+                            var chunkBytesLength = e.target.result.byteLength;
+                            var readBytes = offset + chunkBytesLength;
+                            buffer.push(e.target.result);
+                            if(file.size > readBytes){
+                                sliceFile(readBytes);
+                            }else{
+                                Utils.download(buffer);
+                            }
+                            return chunkBytesLength;
+                        });
+                    }
+                    sliceFile(0);
+                }
+            }
+        </script>
+    </head>
+    <body onload="init();">
+        <div id="main" class="main">
+            Drag and drop a folder or a group of files.
+            <div style="font-size: 0.8em;margin-top: 22px;">
+                Or click here to select them.
+            </div>
+        </div>
+    </body>
+</html>
